@@ -1,65 +1,61 @@
-import { loadPolicy, logBlocked, buildApproval, debug } from "./policy.js";
+/**
+ * OpenClaw Agent Protocol — Plugin Entry Point
+ *
+ * Infrastructure-level routing enforcement for OpenClaw multi-agent systems.
+ * Intercepts tool calls and enforces that they are dispatched to the correct
+ * specialist agent, not executed directly.
+ */
+
+import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { resolveTargetAgent } from "./resolve.js";
-import type { BeforeToolCallEvent, BeforeToolCallContext, BlockResult } from "./types.js";
+import { loadPolicy, logBlocked, buildApproval } from "./policy.js";
 
-// ── Plugin registration ───────────────────────────────────────────────────────
-//
-// OpenClaw calls register(api) when loading the plugin.
-// Use api.on() to attach hooks — NOT api.registerHook() (that's for internal hooks).
+export default definePluginEntry({
+  id: "openclaw-agent-protocol",
+  name: "OpenClaw Agent Protocol",
+  description:
+    "Infrastructure-level routing enforcement for OpenClaw. " +
+    "Agents must dispatch restricted tools to the correct specialist — " +
+    "enforced at the gateway level, not the prompt level.",
 
-export function register(api: { on: (event: string, handler: (event: BeforeToolCallEvent, ctx: BeforeToolCallContext) => Promise<BlockResult | void>) => void }): void {
-  debug("PLUGIN REGISTERED");
+  register(api): void {
+    api.on("before_tool_call", async (event, ctx) => {
+      const pol = loadPolicy();
+      if (!pol.enabled) return;
+      if (pol.mode === "off") return;
 
-  api.on("before_tool_call", async (event, ctx): Promise<BlockResult | void> => {
-    debug(`HOOK FIRING: tool=${event.toolName} sessionId=${ctx.sessionId}`);
+      const { toolName, params } = event;
+      const sessionKey = ctx.sessionKey ?? ctx.agentId ?? "unknown";
 
-    // Reload policy on every call so edits take effect immediately
-    const pol = loadPolicy();
-    if (!pol.enabled) return;
-    if (pol.mode === "off") return;
+      // Always-allow tools
+      const allowTools = pol.allowTools ?? [];
+      if (allowTools.includes(toolName)) return;
 
-    const { toolName, params } = event;
-    const sessionKey = ctx.sessionId ?? "unknown";
+      // Resolve target agent
+      const targetAgent = resolveTargetAgent(toolName, params, pol);
+      if (!targetAgent) return; // not in routing table — passthrough
 
-    const allowTools = pol.allowTools ?? [];
-    if (allowTools.includes(toolName)) {
-      debug(`ALLOWED (allowTools): ${toolName}`);
-      return;
-    }
+      const rawDetail =
+        params?.command ?? params?.path ?? params?.code ?? params?.url ?? toolName;
+      const detail = String(rawDetail).slice(0, 200);
 
-    const targetAgent = resolveTargetAgent(toolName, params, pol);
-    debug(`Target agent for ${toolName}: ${targetAgent}`);
+      logBlocked(toolName, detail, targetAgent, sessionKey);
 
-    if (!targetAgent) return; // not in routing table — passthrough
+      if (pol.mode === "log") {
+        return {
+          params,
+          block: false,
+          blockReason: `[Agent Protocol] ${toolName} should be dispatched to ${targetAgent}. Compliance logged.`,
+        };
+      }
 
-    const rawDetail = params?.command ?? params?.path ?? params?.code ?? params?.url ?? toolName;
-    const detail = String(rawDetail).slice(0, 200);
-
-    logBlocked(toolName, detail, targetAgent, sessionKey);
-    debug(`LOGGED BLOCKED: ${toolName} → ${targetAgent}`);
-
-    if (pol.mode === "log") {
+      // Enforce — block and require approval
       return {
-        params: event.params,
-        block: false,
-        blockReason: `[HARD STOP] ${toolName} should be dispatched to ${targetAgent}. Compliance logged.`,
+        params,
+        block: true,
+        blockReason: `Agent Protocol: ${toolName} must be dispatched to ${targetAgent}. Use delegate_task().`,
+        requireApproval: buildApproval(toolName, targetAgent),
       };
-    }
-
-    // Enforce mode — block and require approval
-    debug(`BLOCKING: ${toolName} (enforce mode)`);
-    return {
-      params: event.params,
-      block: true,
-      blockReason: `HARD STOP: ${toolName} must be dispatched to ${targetAgent}. Use delegate_task().`,
-      requireApproval: buildApproval(toolName, targetAgent),
-    };
-  });
-}
-
-// ── Default export for OpenClaw ────────────────────────────────────────────────
-//
-// OpenClaw loads plugins by importing the default export.
-// The SDK calls register(api) internally after loading.
-
-export default { register };
+    });
+  },
+});
