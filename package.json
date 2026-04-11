@@ -1,0 +1,40 @@
+{
+  "name": "openclaw-agent-routing-enforcer",
+  "version": "1.0.0",
+  "description": "OpenClaw plugin that intercepts tool calls and routes them to the correct specialist agent. Infrastructure-level enforcement — agents cannot bypass it.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "agent-routing-enforcer": "dist/wizard.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "setup": "node dist/wizard.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "glob": "^11.0.0",
+    "minimatch": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "openclaw",
+    "agent-routing",
+    "hard-stop",
+    "multi-agent",
+    "openclaw-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_GITHUB/agent-routing-enforcer"
+  }
+}
