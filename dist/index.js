@@ -31,6 +31,9 @@ export default definePluginEntry({
             const targetAgent = resolveTargetAgent(toolName, params, pol);
             if (!targetAgent)
                 return; // not in routing table — passthrough
+            // If the calling agent IS the target agent, it is the specialist — allow
+            if (ctx.agentId === targetAgent)
+                return;
             const rawDetail = params?.command ?? params?.path ?? params?.code ?? params?.url ?? toolName;
             const detail = String(rawDetail).slice(0, 200);
             logBlocked(toolName, detail, targetAgent, sessionKey);
