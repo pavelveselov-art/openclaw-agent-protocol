@@ -1,12 +1,12 @@
 {
-  "name": "openclaw-agent-routing-enforcer",
+  "name": "openclaw-agent-protocol",
   "version": "1.0.0",
-  "description": "OpenClaw plugin that intercepts tool calls and routes them to the correct specialist agent. Infrastructure-level enforcement — agents cannot bypass it.",
+  "description": "Infrastructure-level routing enforcement for OpenClaw multi-agent systems. Agents must dispatch restricted tools to the correct specialist — enforced at the gateway level, not the prompt level.",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "agent-routing-enforcer": "dist/wizard.js"
+    "openclaw-agent-protocol": "dist/wizard.js"
   },
   "scripts": {
     "build": "tsc",
@@ -28,13 +28,13 @@
   },
   "keywords": [
     "openclaw",
+    "agent-protocol",
     "agent-routing",
-    "hard-stop",
     "multi-agent",
     "openclaw-plugin"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pavelveselov-art/agent-routing-enforcer"
+    "url": "https://github.com/pavelveselov-art/openclaw-agent-protocol"
   }
 }
