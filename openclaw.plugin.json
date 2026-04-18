@@ -1,0 +1,5 @@
+{
+  "id": "hard-stop-enforcer",
+  "enabledByDefault": true,
+  "configSchema": { "type": "object", "additionalProperties": false }
+}
