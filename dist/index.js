@@ -31,8 +31,9 @@ export default definePluginEntry({
             const targetAgent = resolveTargetAgent(toolName, params, pol);
             if (!targetAgent)
                 return; // not in routing table — passthrough
-            // If the calling agent IS the target agent, it is the specialist — allow
-            if (ctx.agentId === targetAgent)
+            // If the calling agent IS the target agent (or its subagent), it is the specialist — allow
+            // Subagent check: ghost:subagent:uuid → allow if targetAgent === "ghost"
+            if (ctx.agentId === targetAgent || ctx.agentId.startsWith(targetAgent + ":subagent:"))
                 return;
             const rawDetail = params?.command ?? params?.path ?? params?.code ?? params?.url ?? toolName;
             const detail = String(rawDetail).slice(0, 200);
