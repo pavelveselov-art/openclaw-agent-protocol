@@ -1,5 +1,5 @@
 {
-  "id": "hard-stop-enforcer",
+  "id": "openclaw-agent-protocol",
   "enabledByDefault": true,
   "configSchema": { "type": "object", "additionalProperties": false }
 }

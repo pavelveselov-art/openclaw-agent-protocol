@@ -11,7 +11,7 @@ import { resolveTargetAgent } from "./resolve.js";
 import { loadPolicy, logBlocked, buildApproval } from "./policy.js";
 
 export default definePluginEntry({
-  id: "hard-stop-enforcer",
+  id: "openclaw-agent-protocol",
   name: "OpenClaw Agent Protocol",
   description:
     "Infrastructure-level routing enforcement for OpenClaw. " +
