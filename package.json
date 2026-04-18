@@ -1,6 +1,6 @@
 {
   "name": "openclaw-agent-protocol",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Infrastructure-level routing enforcement for OpenClaw multi-agent systems. Agents must dispatch restricted tools to the correct specialist — enforced at the gateway level, not the prompt level.",
   "license": "MIT",
   "type": "module",
